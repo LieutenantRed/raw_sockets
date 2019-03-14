@@ -6,8 +6,10 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <arpa/inet.h>
-
+#include <linux/tcp.h>
+#include <linux/udp.h>
 
 #define BUFFER_SIZE 1024
 
@@ -32,6 +34,9 @@ int main() {
 	struct sockaddr_in src;
 	int addrlen = sizeof(src);
 	char buffer[BUFFER_SIZE];
+	struct iphdr header;
+	struct tcphdr tcp_head; //size = u16 * 6 + u32 * 2
+	struct udphdr udp_head; //size = u16 * 4
 
 	while(1) {
 		memcpy(&workset, &socketset, sizeof(fd_set));
@@ -40,13 +45,29 @@ int main() {
 		if (FD_ISSET(raw_tcp, &workset)) {
 			memset(buffer, 0, BUFFER_SIZE);
 			recvfrom(raw_tcp, buffer, BUFFER_SIZE, 0, (struct sockaddr*)&src, (socklen_t*)&addrlen);
-			fprintf(stdout, "TCP: from %s : %d\n%s\n\n", inet_ntoa(src.sin_addr), ntohs(src.sin_port), buffer);
+			
+			// Without parsing:
+			// for (int i = 0; i < 1024; ++i)
+			// 	fprintf(stdout, "%c", buffer[i]);
+			// fprintf(stdout, "\n\n");
+
+			//Output
+			fprintf(stdout, "TCP: from %s : %d\n", inet_ntoa(src.sin_addr), ntohs(src.sin_port));
+			for (int i = sizeof(header) + sizeof(tcp_head); i < BUFFER_SIZE; ++i) {
+				fprintf(stdout, "%c ", buffer[i]);
+			}
+			fprintf(stdout, "\n\n");
 		}
 
 		if (FD_ISSET(raw_udp, &workset)) {
 			memset(buffer, 0, BUFFER_SIZE);
 			recvfrom(raw_udp, buffer, BUFFER_SIZE, 0, (struct sockaddr*)&src, (socklen_t*)&addrlen);
-			fprintf(stdout, "UDP: from %s : %d\n%s\n\n", inet_ntoa(src.sin_addr), ntohs(src.sin_port), buffer);
+			//Output
+			fprintf(stdout, "UDP: from %s : %d\n", inet_ntoa(src.sin_addr), ntohs(src.sin_port));
+			for (int i = sizeof(header) + sizeof(udp_head); i < BUFFER_SIZE; ++i) {
+				fprintf(stdout, "%c ", buffer[i]);
+			}
+			fprintf(stdout, "\n\n");
 		}
 	}
 
