@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -46,15 +47,11 @@ int main() {
 			memset(buffer, 0, BUFFER_SIZE);
 			recvfrom(raw_tcp, buffer, BUFFER_SIZE, 0, (struct sockaddr*)&src, (socklen_t*)&addrlen);
 			
-			// Without parsing:
-			// for (int i = 0; i < 1024; ++i)
-			// 	fprintf(stdout, "%c", buffer[i]);
-			// fprintf(stdout, "\n\n");
-
+			uint16_t port = *((uint16_t*)(buffer + sizeof(header)));
 			//Output
-			fprintf(stdout, "TCP: from %s : %d\n", inet_ntoa(src.sin_addr), ntohs(src.sin_port));
+			fprintf(stdout, "TCP: from %s : %d\n", inet_ntoa(src.sin_addr), ntohs(port));
 			for (int i = sizeof(header) + sizeof(tcp_head); i < BUFFER_SIZE; ++i) {
-				fprintf(stdout, "%c ", buffer[i]);
+				fprintf(stdout, "%X ", buffer[i]);
 			}
 			fprintf(stdout, "\n\n");
 		}
@@ -62,10 +59,13 @@ int main() {
 		if (FD_ISSET(raw_udp, &workset)) {
 			memset(buffer, 0, BUFFER_SIZE);
 			recvfrom(raw_udp, buffer, BUFFER_SIZE, 0, (struct sockaddr*)&src, (socklen_t*)&addrlen);
+			
+			uint16_t port = *((uint16_t*)(buffer + sizeof(header)));
+			
 			//Output
-			fprintf(stdout, "UDP: from %s : %d\n", inet_ntoa(src.sin_addr), ntohs(src.sin_port));
+			fprintf(stdout, "UDP: from %s : %d\n", inet_ntoa(src.sin_addr), ntohs(port));
 			for (int i = sizeof(header) + sizeof(udp_head); i < BUFFER_SIZE; ++i) {
-				fprintf(stdout, "%c ", buffer[i]);
+				fprintf(stdout, "%X ", buffer[i]);
 			}
 			fprintf(stdout, "\n\n");
 		}
