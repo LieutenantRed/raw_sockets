@@ -12,21 +12,21 @@ For the mathematically inclined, the set of 16-bit hexadecimal values V = {0001,
     For any X,Y in V, (X + Y) = (Y + X) [commutativity]
 
 Note that in the set V and the group <V,+>, number 0000 deleted the from consideration. If we put the number 0000 in the set V, then <V,+> is not a group any longer. 
-
+_____________
 
 TCP header:
-_____________
 
 ![Image alt](https://github.com/LieutenantRed/raw_sockets/blob/master/raw_client/png/tcp_header.png)
 
+_____________
 
 UDP header:
-_____________
 
 ![Image alt](https://github.com/LieutenantRed/raw_sockets/blob/master/raw_client/png/udp_header.png)
 
+_____________
 
 IP header:
-_____________
+
 
 ![Image alt](https://github.com/LieutenantRed/raw_sockets/blob/master/raw_client/png/ip_header.png)
