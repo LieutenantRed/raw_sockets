@@ -28,7 +28,7 @@ int main() {
 		fprintf(stderr, "ETH socket error");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	/*ETHERNET HEADER*/
 	// dest:  e0:b9:a5:ef:fa:ea 
 	// this:  0c:8b:fd:5d:0f:52
@@ -74,7 +74,7 @@ int main() {
 	int full_l = BUFFER_SIZE + 
 		sizeof(udp_head) + 
 		sizeof(ip_head) + 
-		sizeof(eth_head);
+		sizeof(eth_head) + 4;
 	
 	char buffer[full_l];
 	memset(buffer, 0, full_l);
@@ -116,6 +116,8 @@ int main() {
 
 		//send
 		fgets(buffer_it, BUFFER_SIZE, stdin);
+		uint32_t csum = crc32(buffer, full_l - 4);
+		memcpy(buffer + full_l - 4, &csum, 4);
 
 		sendto(raw_udp, buffer, full_l, 0, &p_addr, sizeof(p_addr));
 
