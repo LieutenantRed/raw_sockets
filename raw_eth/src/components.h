@@ -4,6 +4,8 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
+#include <stdint.h>
 
 struct {
 	unsigned char ihl:4, ver:4; 
@@ -32,5 +34,7 @@ struct {
 } eth_head;
 
 uint16_t ip_checksum(void* ip_p);
+
+uint32_t crc32(unsigned char *buf, size_t len);
 
 #endif
