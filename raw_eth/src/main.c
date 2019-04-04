@@ -23,7 +23,7 @@
 #define THIS_PORT 1952
 
 int main() {
-	int raw_udp = socket(AF_PACKET, SOCK_RAW, ETH_P_ALL);
+	int raw_udp = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if (raw_udp == -1) {
 		fprintf(stderr, "ETH socket error");
 		exit(EXIT_FAILURE);
@@ -103,6 +103,12 @@ int main() {
 	p_addr.sll_halen = 6;
 	p_addr.sll_ifindex = if_nametoindex("wlp2s0");
 
+	/*BINDING*/
+	if (bind(raw_udp, (struct sockaddr *)&p_addr, sizeof(p_addr)) != 0) {
+		fprintf(stderr, "binding socket error");
+		exit(EXIT_FAILURE);
+	}
+
 	/*PUSH MSG*/
 	while (1) {
 		void *csum_p = (void *) &(ip_head.csum);
@@ -130,18 +136,18 @@ int main() {
 		}
 
 		//recv
-		char printbuf[BUFFER_SIZE];
-		memset(printbuf, 0, BUFFER_SIZE);
-		memset(&udp_head, 0, sizeof(udp_head));
-		while (ntohs(udp_head.dst) != THIS_PORT) {
-			recvfrom(raw_udp, printbuf, BUFFER_SIZE, 0, 0, 0);
-			memcpy(
-				&udp_head,
-				printbuf + sizeof(ip_head) + sizeof(eth_head),
-				sizeof(udp_head)
-			);
+		char printbuf[full_l];
+		memset(printbuf, 0, full_l);
+		void *dataptr, *rcv_ipptr, *rcv_portptr;
+
+		dataptr = printbuf + sizeof(eth_head) + sizeof(ip_head) + sizeof(udp_head);
+		rcv_ipptr = printbuf + sizeof(eth_head) + sizeof(ip_head) - sizeof(uint32_t);
+		rcv_portptr = printbuf + sizeof(eth_head) + sizeof(ip_head) + sizeof(uint16_t);
+		
+		while (ntohs(*((uint16_t *)rcv_portptr)) != THIS_PORT) {
+			recvfrom(raw_udp, printbuf, full_l, 0, 0, 0);
 		}
-		printf("%s", printbuf + sizeof(ip_head) + sizeof(eth_head) + sizeof(udp_head));
+		printf("%s", (char*)dataptr);
 	}
 
 	close(raw_udp);
