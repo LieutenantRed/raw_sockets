@@ -1,17 +1,18 @@
 #include "components.h"
 
 uint16_t ip_checksum(void* ip_p) {
-
-    char* data = (char*)ip_p;
+    // Cast the data pointer to one that can be indexed.
+    char* data = (char*) ip_p;
+    size_t length = 20;
 
     // Initialise the accumulator.
-    uint32_t acc = 0xffff;
+    uint32_t acc = 0;
 
     // Handle complete 16-bit blocks.
-    for (size_t i = 0; i + 1 < 16; i += 2) {
+    for (size_t i = 0; i + 1 < length; i += 2) {
         uint16_t word;
         memcpy(&word, data + i, 2);
-        acc += ntohs(word);
+        acc += htons(word);
         while (acc > 0xffff) {
             acc -= 0xffff;
         }
@@ -20,6 +21,28 @@ uint16_t ip_checksum(void* ip_p) {
     // Return the checksum in network byte order.
     return htons(~acc);
 }
+
+
+// uint16_t ip_checksum(void* ip_p) {
+
+//     char* data = (char*)ip_p;
+
+//     // Initialise the accumulator.
+//     uint32_t acc = 0xffff;
+
+//     // Handle complete 16-bit blocks.
+//     for (size_t i = 0; i + 1 < 16; i += 2) {
+//         uint16_t word;
+//         memcpy(&word, data + i, 2);
+//         acc += ntohs(word);
+//         while (acc > 0xffff) {
+//             acc -= 0xffff;
+//         }
+//     }
+
+//     // Return the checksum in network byte order.
+//     return htons(~acc);
+// }
 
 /*
   Name  : CRC-32
