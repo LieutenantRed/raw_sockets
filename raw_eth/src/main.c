@@ -9,7 +9,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netpacket/packet.h>
-#include <net/ethernet.h> 
+#include <net/ethernet.h>
 #include <net/if.h>
 
 #include "components.h"
@@ -30,7 +30,7 @@ int main() {
 	}
 
 	/*ETHERNET HEADER*/
-	// dest:  e0:b9:a5:ef:fa:ea 
+	// dest:  e0:b9:a5:ef:fa:ea
 	// this:  0c:8b:fd:5d:0f:52
 	memset(&eth_head, 0, sizeof(eth_head));
 
@@ -47,18 +47,18 @@ int main() {
 	eth_head.ether_shost[3] = 0x5d;
 	eth_head.ether_shost[4] = 0x0f;
 	eth_head.ether_shost[5] = 0x52;
-	
-	eth_head.ether_type = 0x0800;
+
+	eth_head.ether_type = 0x0008;
 
 	/*IP HEADER*/
 	memset(&ip_head, 0, sizeof(ip_head));
 
 	ip_head.ihl = 5;
 	ip_head.ver = 4;
-	ip_head.len = htons(sizeof(ip_head) + sizeof(udp_head));
+	ip_head.len = htons(sizeof(ip_head) + sizeof(udp_head) + BUFFER_SIZE);
 	ip_head.ttl = 255;
 	ip_head.proto = PROTO_UDP;
-	inet_aton(THIS, (struct in_addr*)&(ip_head.ip_src)); 
+	inet_aton(THIS, (struct in_addr*)&(ip_head.ip_src));
 	inet_aton(HOST, (struct in_addr*)&(ip_head.ip_dst));
 
 	/*UDP HEADER*/
@@ -71,27 +71,27 @@ int main() {
 
 
 	/*MSG BUFFER*/
-	int full_l = BUFFER_SIZE + 
-		sizeof(udp_head) + 
-		sizeof(ip_head) + 
+	int full_l = BUFFER_SIZE +
+		sizeof(udp_head) +
+		sizeof(ip_head) +
 		sizeof(eth_head) + 4;
-	
+
 	char buffer[full_l];
 	memset(buffer, 0, full_l);
 
 	memcpy(
-		buffer, 
-		&eth_head, 
+		buffer,
+		&eth_head,
 		sizeof(eth_head)
 	);
 	memcpy(
-		(char *)buffer + sizeof(eth_head), 
-		&ip_head, 
+		(char *)buffer + sizeof(eth_head),
+		&ip_head,
 		sizeof(ip_head)
 	);
 	memcpy(
-		(char *)buffer + sizeof(ip_head) + sizeof(eth_head), 
-		&udp_head, 
+		(char *)buffer + sizeof(ip_head) + sizeof(eth_head),
+		&udp_head,
 		sizeof(udp_head)
 	);
 
@@ -110,16 +110,20 @@ int main() {
 
 		uint16_t current_csum = ip_checksum(&ip_head);
 		memcpy(csum_p, &current_csum, sizeof(uint16_t));
-
+		memcpy(
+			(char *)buffer + sizeof(eth_head),
+			&ip_head,
+			sizeof(ip_head)
+		);
 		//clear
 		memset(buffer_it, 0, BUFFER_SIZE);
 
 		//send
 		fgets(buffer_it, BUFFER_SIZE, stdin);
-		uint32_t csum = crc32(buffer, full_l - 4);
+		uint32_t csum = crc32((unsigned char*)buffer, full_l - 4);
 		memcpy(buffer + full_l - 4, &csum, 4);
 
-		sendto(raw_udp, buffer, full_l, 0, &p_addr, sizeof(p_addr));
+		sendto(raw_udp, buffer, full_l, 0, (struct sockaddr*)&p_addr, sizeof(p_addr));
 
 		if (strcmp(buffer_it, "exit\n") == 0) {
 			break;
@@ -132,8 +136,8 @@ int main() {
 		while (ntohs(udp_head.dst) != THIS_PORT) {
 			recvfrom(raw_udp, printbuf, BUFFER_SIZE, 0, 0, 0);
 			memcpy(
-				&udp_head, 
-				printbuf + sizeof(ip_head) + sizeof(eth_head), 
+				&udp_head,
+				printbuf + sizeof(ip_head) + sizeof(eth_head),
 				sizeof(udp_head)
 			);
 		}
