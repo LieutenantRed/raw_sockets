@@ -21,29 +21,6 @@ uint16_t ip_checksum(void* ip_p) {
     // Return the checksum in network byte order.
     return htons(~acc);
 }
-
-
-// uint16_t ip_checksum(void* ip_p) {
-
-//     char* data = (char*)ip_p;
-
-//     // Initialise the accumulator.
-//     uint32_t acc = 0xffff;
-
-//     // Handle complete 16-bit blocks.
-//     for (size_t i = 0; i + 1 < 16; i += 2) {
-//         uint16_t word;
-//         memcpy(&word, data + i, 2);
-//         acc += ntohs(word);
-//         while (acc > 0xffff) {
-//             acc -= 0xffff;
-//         }
-//     }
-
-//     // Return the checksum in network byte order.
-//     return htons(~acc);
-// }
-
 /*
   Name  : CRC-32
   Poly  : 0x04C11DB7    x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11
