@@ -104,10 +104,10 @@ int main() {
 	p_addr.sll_ifindex = if_nametoindex("wlp2s0");
 
 	/*BINDING*/
-	if (bind(raw_udp, (struct sockaddr *)&p_addr, sizeof(p_addr)) != 0) {
-		fprintf(stderr, "binding socket error");
-		exit(EXIT_FAILURE);
-	}
+	// if (bind(raw_udp, (struct sockaddr *)&p_addr, sizeof(p_addr)) != 0) {
+	// 	fprintf(stderr, "binding socket error");
+	// 	exit(EXIT_FAILURE);
+	// }
 
 	/*PUSH MSG*/
 	while (1) {
